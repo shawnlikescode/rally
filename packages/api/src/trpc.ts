@@ -33,7 +33,6 @@ export const createTRPCContext = (opts: {
 }) => {
   return {
     db,
-    userId: opts.auth.userId,
     ...opts,
   };
 };
@@ -116,7 +115,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.userId) {
+  if (!ctx.auth.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   // Make ctx.userId non-nullable in protected procedures
