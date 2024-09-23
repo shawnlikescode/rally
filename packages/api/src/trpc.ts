@@ -119,7 +119,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   // Make ctx.userId non-nullable in protected procedures
-  return next({ ctx: { auth: ctx.auth } });
+  return next({ ctx: { auth: ctx.auth, clerkId: ctx.auth.userId } });
 });
 
 export const protectedProcedure = t.procedure

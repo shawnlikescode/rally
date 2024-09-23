@@ -6,7 +6,7 @@ import {
   varchar,
   boolean,
   integer,
-  text,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -31,22 +31,57 @@ export const UserRelations = relations(User, ({ many, one }) => ({
   preferences: one(UserPreferences),
 }));
 
+export const CreateUserSchema = createInsertSchema(User, {
+  email: z.string().email(),
+  name: z.string(),
+  phoneNumber: z.string()
+}).omit({
+  id: true,
+  clerkId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const WakeUpCalls = pgTable("wakeup_calls", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   userId: bigserial("user_id", { mode: "number" })
     .notNull()
     .references(() => User.id, { onDelete: "cascade" }),
-  message: varchar("wakeup_message", { length: 1000 }),
+  message: varchar("wakeup_message", { length: 1000 }).notNull(),
   scheduledTime: timestamp("scheduled_time", { mode: "date", withTimezone: true }).notNull(),
   actualTime: timestamp("actual_time", { mode: "date", withTimezone: true }),
   isActive: boolean("is_active").default(true).notNull(),
-  repeatDays: varchar("repeat_days", { length: 7 }), // e.g., "0123456" for every day
-  status: varchar("status", { length: 20 }).notNull().default('pending'), // 'pending', 'completed', 'snoozed', 'missed'
+  recurrenceRule: jsonb("recurrence_rule"),
+  status: varchar("status", { length: 20 }).notNull().default('pending'), // 'pending', 'initiated', 'completed', 'snoozed', 'missed'
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at", {
     mode: "date",
     withTimezone: true,
   }).$onUpdateFn(() => sql`now()`),
+});
+
+const RecurrenceRuleSchema = {
+  frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
+  interval: z.number().positive(),
+  byDay: z.array(z.number().min(0).max(6)),
+  startDate: z.date(),
+  endDate: z.date().optional(),
+  exceptions: z.array(z.date()),
+};
+
+export const CreateWakeUpCallSchema = createInsertSchema(WakeUpCalls, {
+  scheduledTime: z.date(),
+  recurrenceRule: z.object({
+    ...RecurrenceRuleSchema, 
+    additionalRules: z.array(z.object(RecurrenceRuleSchema)).optional()
+  }),
+  message: z.string().min(1).max(1000),
+  isActive: z.boolean().default(true),
+}).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const WakeUpCallsRelations = relations(WakeUpCalls, ({ one, many }) => ({
@@ -96,11 +131,12 @@ export const UserPreferences = pgTable("user_preferences", {
   userId: bigserial("user_id", { mode: "number" })
     .notNull()
     .references(() => User.id, { onDelete: "cascade" }),
-  defaultMessage: text("default_message"),
+  defaultMessage: varchar("default_message", { length: 1000 }),
   defaultVoice: varchar("default_voice", { length: 50 }),
   timezone: varchar("timezone", { length: 50 }).notNull(),
   maxSnoozeCount: integer("max_snooze_count").default(5),
-  defaultSnoozeTime: integer("default_snooze_time").default(5), // in minutes
+  defaultSnoozeDuration: integer("default_snooze_time").default(5), // in minutes
+  allowSnooze: boolean("allow_snooze").default(true),
   updatedAt: timestamp("updated_at", {
     mode: "date",
     withTimezone: true,
@@ -114,14 +150,3 @@ export const UserPreferencesRelations = relations(UserPreferences, ({ one }) => 
   }),
 }));
 
-export const CreateUserSchema = createInsertSchema(User, {
-  email: z.string().email(),
-  name: z.string(),
-  phoneNumber: z.string()
-}).omit({
-  id: true,
-  clerkId: true,
-
-  createdAt: true,
-  updatedAt: true,
-});
