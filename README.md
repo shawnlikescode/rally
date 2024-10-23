@@ -3,7 +3,7 @@
 ## TODO
 
 - [X] Make it deploy
-- [ ] Add Auth (Clerk)
+- [X] Add Auth (Clerk)
 - [X] Setup a database
 - [ ] Scaffold basic ui for creating a wake-up call 
 - [ ] Twilio integration
