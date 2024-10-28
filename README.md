@@ -6,5 +6,6 @@
 - [X] Add Auth (Clerk)
 - [X] Setup a database
 - [ ] Scaffold basic ui for creating a wake-up call 
-- [ ] Twilio integration
+- [X] Twilio integration
 - [ ] Cron for sending wake-up calls
+- [ ] Database schema
