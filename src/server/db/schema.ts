@@ -99,7 +99,8 @@ export const CreateWakeUpCallSchema = createInsertSchema(wakeUpCall, {
   phoneNumber: (schema) => schema.phoneNumber.refine(isMobilePhone, "Invalid phone number"),
   message: (schema) => schema.message.min(1, "Message is required").max(1024, "Message must be less than 1024 characters"),
   scheduledAt: (schema) => schema.scheduledAt.min(new Date(), "Scheduled date must be in the future"),
-  metadata: z.record(z.string(), z.unknown())
+  metadata: z.record(z.string(), z.unknown()),
+  nextOccurrence: z.date().optional(),
 }).omit({
   id: true,
   createdAt: true,
@@ -145,5 +146,14 @@ export const callLogRelations = relations(callLog, ({ one }) => ({
 }));
 
 export const CreateCallLogSchema = createInsertSchema(callLog, {
-  metadata: z.record(z.string(), z.unknown())
+  wakeUpCallId: z.number().optional(),
+  twilioSid: z.string(),
+  status: z.string(),
+  error: z.string().optional(),
+  duration: z.number().optional(),
+  startedAt: z.date(),
+  metadata: z.record(z.string(), z.unknown()),
+}).omit({
+  id: true,
+  createdAt: true,
 });

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import {SignedIn, SignedOut, SignInButton} from '@clerk/nextjs'
+import CreateWakeUpCallForm from './_components/create-wake-up-call-form';
 
 export default async function HomePage() {
 
@@ -15,6 +16,7 @@ export default async function HomePage() {
       </SignedOut>
 
       <h1>Wake-Up Call Project</h1>
+      <CreateWakeUpCallForm />
     </main>
   );
 }

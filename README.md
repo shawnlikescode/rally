@@ -8,4 +8,4 @@
 - [ ] Scaffold basic ui for creating a wake-up call 
 - [X] Twilio integration
 - [ ] Cron for sending wake-up calls
-- [ ] Database schema
+- [X] Database schema

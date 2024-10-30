@@ -19,5 +19,5 @@ export async function makePhoneCall(to: string, message: string) {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
     };
-  }
+  } 
 }
